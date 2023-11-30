@@ -14,7 +14,7 @@ FUSE全称为Filesystem in Userspace，即运行在用户空间上的文件系�
 
 FUSE实现了一个对文件系统访问的回调。FUSE分为内核态的模块和用户态的库两部分。其中用户态的库为程序开发提供接口，也是我们实际开发时用的接口，我们通过这些接口将请求处理功能注册到FUSE中。内核态模块是具体的数据流程的功能实现，它截获文件的访问请求，然后调用用户态注册的函数进行处理。
 
-![img](file:///C:/Users/Lenovo/AppData/Local/Temp/msohtmlclip1/01/clip_image002.gif)
+<img src="./README.assets/image-20231130120731459.png" alt="image-20231130120731459" style="zoom:50%;" />
 
 因此，要接入FUSE框架，就需要**通过一系列钩子函数（函数指针）来完成对应操作**，此部分我们将在后面详细介绍。
 
@@ -26,7 +26,7 @@ FUSE实现了一个对文件系统访问的回调。FUSE分为内核态的模块
 
 本实验中，简化后的EXT2文件系统的基本布局如下所示：
 
-![img](file:///C:/Users/Lenovo/AppData/Local/Temp/msohtmlclip1/01/clip_image004.gif)
+<img src="./README.assets/image-20231130120710883.png" alt="image-20231130120710883" style="zoom:50%;" />
 
 > 在确定磁盘布局中各部分大小时，我们可以进行简单估算：由于磁盘容量为4MB，逻辑块大小为1024B，那么逻辑块数应该是4MB / 1024B = 4096。如果采用直接索引，假设每个文件最多直接索引4个逻辑块来填写文件数据，也就是每个文件数据上限是4* 1024B = 4KB；同时假设一个逻辑块存储可以存储16个文件的索引节点，则维护一个文件所需要的存储容量是4KB + 64B。那么4MB磁盘，最多可以存放的文件数是4MB / (4KB + 64B) = 1008。
 
@@ -42,17 +42,17 @@ FUSE实现了一个对文件系统访问的回调。FUSE分为内核态的模块
 
 - **数据块**：记录文件内容，数据块通常会被inode通过直接索引或者间接索引的方式找到（间接索引本次实验不做考虑）。磁盘中的剩余空间均作为数据块，还剩4096 - 1 - 1 - 1 - 64 = 4029个逻辑块。
 
-  ![image-20231130115826124](C:/Users/Lenovo/AppData/Roaming/Typora/typora-user-images/image-20231130115826124.png)
+  ![image-20231130120747583](./README.assets/image-20231130120747583.png)
 
 由此，可以填写include/fs.layout文件中的布局如下：
 
-![image-20231130115839324](C:/Users/Lenovo/AppData/Roaming/Typora/typora-user-images/image-20231130115839324.png)
+![image-20231130120757738](./README.assets/image-20231130120757738.png)
 
 ## **钩子函数（函数指针）**
 
 钩子函数（函数指针），是一系列函数的抽象，帮助我们接入FUSE框架。我们定义基于FUSE的文件系统支持的操作函数，填在结构体struct fuse_operations operations中：
 
-![image-20231130115907833](C:/Users/Lenovo/AppData/Roaming/Typora/typora-user-images/image-20231130115907833.png)
+![image-20231130120809734](./README.assets/image-20231130120809734.png)
 
 ## **总体设计**
 
