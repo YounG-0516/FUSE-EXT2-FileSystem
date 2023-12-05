@@ -112,7 +112,7 @@ int newfs_mkdir(const char* path, mode_t mode) {
 	dentry = new_dentry(fname, NFS_DIR); 
 	dentry->parent = last_dentry;
 	inode  = nfs_alloc_inode(dentry);
-	nfs_alloc_dentry(last_dentry->inode, dentry);
+	nfs_alloc_dentry(last_dentry->inode, dentry, 1);
 	
 	return NFS_ERROR_NONE;
 }
@@ -236,7 +236,7 @@ int newfs_mknod(const char* path, mode_t mode, dev_t dev) {
 	}
 	dentry->parent = last_dentry;
 	inode = nfs_alloc_inode(dentry);
-	nfs_alloc_dentry(last_dentry->inode, dentry);
+	nfs_alloc_dentry(last_dentry->inode, dentry, 1);
 
 	return NFS_ERROR_NONE;
 }

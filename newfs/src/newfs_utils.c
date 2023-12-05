@@ -110,7 +110,7 @@ int nfs_driver_write(int offset, uint8_t *in_content, int size) {
  * @param dentry 
  * @return int 
  */
-int nfs_alloc_dentry(struct nfs_inode* inode, struct nfs_dentry* dentry) {
+int nfs_alloc_dentry(struct nfs_inode* inode, struct nfs_dentry* dentry, int judge) {
     if (inode->dentrys == NULL) {
         inode->dentrys = dentry;
     }
@@ -123,35 +123,37 @@ int nfs_alloc_dentry(struct nfs_inode* inode, struct nfs_dentry* dentry) {
     // 如果当前储存dentry的数据块没有存满，在直接采用头插法插入即可
     // 如果当前储存dentry的数据块已存满，则需要开辟新的数据块储存dentry
     int cur_blk = inode->dir_cnt / NFS_DENTRY_PER_DATABLK();    // 第cur_blk个block_pointer还未被使用
-    if(inode->dir_cnt % NFS_DENTRY_PER_DATABLK() == 1){
-        /* 在数据块位图上查找空闲的索引节点 */
-        int byte_cursor = 0; 
-        int bit_cursor  = 0;
-        int dno_cursor  = 0;    // 记录data块号
-        boolean is_find_free_data_blk = FALSE;
-        for (byte_cursor = 0; byte_cursor < NFS_BLKS_SZ(nfs_super.map_data_blks); byte_cursor++)
-        {
-            for (bit_cursor = 0; bit_cursor < UINT8_BITS; bit_cursor++) {
-                if((nfs_super.map_data[byte_cursor] & (0x1 << bit_cursor)) == 0) {    
-                                                        /* 当前dno_cursor位置空闲 */
-                    nfs_super.map_data[byte_cursor] |= (0x1 << bit_cursor);
+    if(judge == 1){
+        if(inode->dir_cnt % NFS_DENTRY_PER_DATABLK() == 1){
+            /* 在数据块位图上查找空闲的索引节点 */
+            int byte_cursor = 0; 
+            int bit_cursor  = 0;
+            int dno_cursor  = 0;    // 记录data块号
+            boolean is_find_free_data_blk = FALSE;
+            for (byte_cursor = 0; byte_cursor < NFS_BLKS_SZ(nfs_super.map_data_blks); byte_cursor++)
+            {
+                for (bit_cursor = 0; bit_cursor < UINT8_BITS; bit_cursor++) {
+                    if((nfs_super.map_data[byte_cursor] & (0x1 << bit_cursor)) == 0) {    
+                                                            /* 当前dno_cursor位置空闲 */
+                        nfs_super.map_data[byte_cursor] |= (0x1 << bit_cursor);
 
-                    inode->block_pointer[cur_blk] = dno_cursor;
-                    is_find_free_data_blk = TRUE;
+                        inode->block_pointer[cur_blk] = dno_cursor;
+                        is_find_free_data_blk = TRUE;
+                        break;
+                    }
+                    dno_cursor++;
+                }
+                if (is_find_free_data_blk) {
                     break;
                 }
-                dno_cursor++;
             }
-            if (is_find_free_data_blk) {
-                break;
-            }
-        }
 
-        // 未找到空闲数据块
-        if (!is_find_free_data_blk || dno_cursor == nfs_super.max_data)
-            return -NFS_ERROR_NOSPACE;
+            // 未找到空闲数据块
+            if (!is_find_free_data_blk || dno_cursor == nfs_super.max_data)
+                return -NFS_ERROR_NOSPACE;
+        }
     }
-       
+    
     return inode->dir_cnt;
 }
 /**
@@ -336,7 +338,7 @@ struct nfs_inode* nfs_read_inode(struct nfs_dentry * dentry, int ino) {
                 sub_dentry = new_dentry(dentry_d.fname, dentry_d.ftype);
                 sub_dentry->parent = inode->dentry;
                 sub_dentry->ino    = dentry_d.ino; 
-                nfs_alloc_dentry(inode, sub_dentry);
+                nfs_alloc_dentry(inode, sub_dentry, 0);
 
                 offset += sizeof(struct nfs_dentry_d);
                 dir_cnt--;
@@ -355,6 +357,7 @@ struct nfs_inode* nfs_read_inode(struct nfs_dentry * dentry, int ino) {
             }
         }
     }
+
     return inode;
 }
 /**

@@ -67,12 +67,12 @@ typedef enum file_type {
 #define NFS_BLK_SZ()                    (nfs_super.sz_blks)
 #define NFS_DISK_SZ()                   (nfs_super.sz_disk)
 #define NFS_DRIVER()                    (nfs_super.fd)
-#define NFS_BLKS_SZ(blks)               (blks * NFS_BLK_SZ())
+#define NFS_BLKS_SZ(blks)               ((blks) * NFS_BLK_SZ())
 #define NFS_DENTRY_PER_DATABLK()        (NFS_BLK_SZ() / sizeof(struct nfs_dentry))      //计算一个磁盘块可以储存多少dentry
 
 // 向上取整及向下取整
-#define NFS_ROUND_DOWN(value, round)    (value % round == 0 ? value : (value / round) * round)
-#define NFS_ROUND_UP(value, round)      (value % round == 0 ? value : (value / round + 1) * round)
+#define NFS_ROUND_DOWN(value, round)    ((value) % (round) == 0 ? (value) : ((value) / (round)) * (round))
+#define NFS_ROUND_UP(value, round)      ((value) % (round) == 0 ? (value) : ((value) / (round) + 1) * (round))
 
 // 设置文件名称
 #define NFS_ASSIGN_FNAME(pnfs_dentry, _fname)   memcpy(pnfs_dentry->fname, _fname, strlen(_fname))

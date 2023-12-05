@@ -30,7 +30,7 @@ int 			   nfs_driver_read(int offset, uint8_t *out_content, int size);
 int 			   nfs_driver_write(int offset, uint8_t *in_content, int size);
 int 			   nfs_mount(struct custom_options options);
 int 			   nfs_umount();
-int 			   nfs_alloc_dentry(struct nfs_inode * inode, struct nfs_dentry * dentry);
+int 			   nfs_alloc_dentry(struct nfs_inode * inode, struct nfs_dentry * dentry, int judge);
 struct nfs_inode*  nfs_alloc_inode(struct nfs_dentry * dentry);
 int 			   nfs_sync_inode(struct nfs_inode * inode);
 struct nfs_inode*  nfs_read_inode(struct nfs_dentry * dentry, int ino);
